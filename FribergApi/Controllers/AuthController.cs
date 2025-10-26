@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using FribergShared.Dto;
-using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
-using FribergApi.Data;
+using FribergApi.Models;
 using FribergShared.Constants;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

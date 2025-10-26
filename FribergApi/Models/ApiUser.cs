@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace FribergApi.Data;
+namespace FribergApi.Models;
 
 public class ApiUser : IdentityUser
 {
