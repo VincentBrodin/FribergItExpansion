@@ -14,12 +14,11 @@ namespace FribergApi.Controllers;
 [Route("[Controller]")]
 public class CarController(UserManager<ApiUser> userManager, ApiContext context) : ControllerBase
 {
-
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] string id)
     {
         var car = await context.Cars.Include(c => c.Updates).FirstOrDefaultAsync(c => c.Id == id);
-        if (car == null)
+        if (car == null || car.Deleted)
         {
             return BadRequest($"No car with id {id}");
         }
@@ -42,6 +41,11 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
         var carsDto = new List<FullCarDto>();
         foreach (var car in cars)
         {
+            if (car.Deleted)
+            {
+                continue;
+            }
+
             var carDto = car.ToDto();
             foreach (var update in car.Updates)
             {
@@ -150,6 +154,31 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
         await context.SaveChangesAsync();
 
         return Ok(car);
+    }
+
+    [HttpDelete]
+    [Authorize(Roles = ApiRoles.Admin)]
+    public async Task<IActionResult> Delete([FromQuery] string id)
+    {
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user == null)
+        {
+            return Unauthorized("Could not find user");
+        }
+
+        var car = await context.Cars.Include(c => c.Updates).FirstOrDefaultAsync(c => c.Id == id);
+        if (car == null || car.Deleted)
+        {
+            return BadRequest($"No car with id {id}");
+        }
+
+        var note = CreateNote(car, user, car.Updates.Count, "deleted", car.Deleted.ToString(), true.ToString());
+        await context.Updates.AddAsync(note);
+        car.Deleted = true;
+        context.Cars.Update(car);
+        await context.SaveChangesAsync();
+
+        return Ok($"Car {id} deleted");
     }
 
     private static Update CreateNote(Car car, ApiUser user, int index, string key, string oldValue, string newValue)

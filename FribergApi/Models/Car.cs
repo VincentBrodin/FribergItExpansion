@@ -12,6 +12,7 @@ public class Car
     public int Year { get; set; } = 0;
     public int HorsePower { get; set; } = 0;
     public List<Update> Updates { get; set; } = [];
+    public bool Deleted {get; set;} = false;
 
     public FullCarDto ToDto()
     {
@@ -22,6 +23,7 @@ public class Car
             Model = Model,
             Year = Year,
             HorsePower = HorsePower,
+            Deleted = Deleted,
         };
     }
 }
