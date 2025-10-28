@@ -5,18 +5,13 @@ namespace FribergApi.Models;
 
 public class Update
 {
-    [Key, Required]
-    public string Id { get; set; } = string.Empty;
-    [Required]
-    public string CarId { get; set; } = string.Empty;
-    [Required]
-    public string UserId { get; set; } = string.Empty;
-    [Required]
-    public DateTime TimeStamp { get; set; }
-    [Required]
-    public int Index { get; set; }
-    [Required]
-    public string Key { get; set; } = string.Empty;
+    [Key]
+    public required string Id { get; set; } = string.Empty;
+    public required string CarId { get; set; } = string.Empty;
+    public required string UserId { get; set; } = string.Empty;
+    public required DateTime TimeStamp { get; set; }
+    public required int Index { get; set; }
+    public required string Key { get; set; } = string.Empty;
     public string OldValue { get; set; } = string.Empty;
     public string NewValue { get; set; } = string.Empty;
 

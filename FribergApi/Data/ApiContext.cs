@@ -17,4 +17,5 @@ public class ApiContext : IdentityDbContext<ApiUser>
 
     public DbSet<Car> Cars { get; set; }
     public DbSet<Update> Updates { get; set; }
+    public DbSet<Rental> Rentals{ get; set; }
 }

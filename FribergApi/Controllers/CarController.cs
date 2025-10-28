@@ -6,39 +6,31 @@ using FribergShared.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FribergApi.Controllers;
 
 [ApiController]
 [Route("[Controller]")]
-public class CarController(UserManager<ApiUser> userManager, ApiContext context) : ControllerBase
+public class CarController(UserManager<ApiUser> userManager, IRepository<Car> carRepo, IRepository<Update> updateRepo) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] string id)
     {
-        var car = await context.Cars.Include(c => c.Updates).FirstOrDefaultAsync(c => c.Id == id);
+        var car = await carRepo.GetAsync(c => c.Id == id);
         if (car == null || car.Deleted)
         {
             return BadRequest($"No car with id {id}");
         }
-        var carDto = car.ToDto();
-        foreach (var update in car.Updates)
-        {
-            var user = await userManager.FindByIdAsync(update.UserId);
-            var userDto = user == null ? new UserDto { Id = update.Id } : user.ToDto();
-            var updateDto = update.ToDto();
-            updateDto.User = userDto;
-            carDto.Updates.Add(updateDto);
-        }
-        return Ok(carDto);
+        var users = new Dictionary<string, UserDto>(); // Keeps a per request cache of each user
+        return Ok(await GetFullCarDto(car, users));
     }
 
     [HttpGet("/[Controller]s")]
     public async Task<IActionResult> GetAll()
     {
-        var cars = await context.Cars.Include(c => c.Updates).ToListAsync();
+        var cars = await carRepo.AllAsync();
         var carsDto = new List<FullCarDto>();
+        var users = new Dictionary<string, UserDto>(); // Keeps a per request cache of each user
         foreach (var car in cars)
         {
             if (car.Deleted)
@@ -46,16 +38,7 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
                 continue;
             }
 
-            var carDto = car.ToDto();
-            foreach (var update in car.Updates)
-            {
-                var user = await userManager.FindByIdAsync(update.UserId);
-                var userDto = user == null ? new UserDto { Id = update.Id } : user.ToDto();
-                var updateDto = update.ToDto();
-                updateDto.User = userDto;
-                carDto.Updates.Add(updateDto);
-            }
-            carsDto.Add(carDto);
+            carsDto.Add(await GetFullCarDto(car, users));
         }
         return Ok(carsDto);
     }
@@ -92,9 +75,9 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
         };
 
 
-        await context.Cars.AddAsync(car);
-        await context.Updates.AddAsync(createNote);
-        await context.SaveChangesAsync();
+        await carRepo.AddAsync(car);
+        await updateRepo.AddAsync(createNote);
+        await carRepo.SaveChangesAsync();
 
         return Ok(car);
     }
@@ -110,7 +93,7 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             return Unauthorized("Could not find user");
         }
 
-        var car = await context.Cars.Include(c => c.Updates).FirstOrDefaultAsync(c => c.Id == id);
+        var car = await carRepo.GetAsync(c => c.Id == id);
         if (car == null)
         {
             return BadRequest($"No car with id {id}");
@@ -123,7 +106,7 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             var note = CreateNote(car, user, count, "make", car.Make, updateCar.Make);
             car.Make = updateCar.Make;
             count++;
-            await context.Updates.AddAsync(note);
+            await updateRepo.AddAsync(note);
         }
 
         if (updateCar.Model != null)
@@ -131,7 +114,7 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             var note = CreateNote(car, user, count, "model", car.Model, updateCar.Model);
             car.Model = updateCar.Model;
             count++;
-            await context.Updates.AddAsync(note);
+            await updateRepo.AddAsync(note);
         }
 
         if (updateCar.Year != null)
@@ -139,7 +122,7 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             var note = CreateNote(car, user, count, "year", car.Year.ToString(), (updateCar.Year ?? 0).ToString());
             car.Year = updateCar.Year ?? 0;
             count++;
-            await context.Updates.AddAsync(note);
+            await updateRepo.AddAsync(note);
         }
 
         if (updateCar.HorsePower != null)
@@ -147,11 +130,11 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             var note = CreateNote(car, user, count, "horsepower", car.HorsePower.ToString(), (updateCar.HorsePower ?? 0).ToString());
             car.HorsePower = updateCar.HorsePower ?? 0;
             count++;
-            await context.Updates.AddAsync(note);
+            await updateRepo.AddAsync(note);
         }
 
-        context.Cars.Update(car);
-        await context.SaveChangesAsync();
+        carRepo.Update(car);
+        await carRepo.SaveChangesAsync();
 
         return Ok(car);
     }
@@ -166,17 +149,17 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             return Unauthorized("Could not find user");
         }
 
-        var car = await context.Cars.Include(c => c.Updates).FirstOrDefaultAsync(c => c.Id == id);
+        var car = await carRepo.GetAsync(c => c.Id == id);
         if (car == null || car.Deleted)
         {
             return BadRequest($"No car with id {id}");
         }
 
         var note = CreateNote(car, user, car.Updates.Count, "deleted", car.Deleted.ToString(), true.ToString());
-        await context.Updates.AddAsync(note);
+        await updateRepo.AddAsync(note);
         car.Deleted = true;
-        context.Cars.Update(car);
-        await context.SaveChangesAsync();
+        carRepo.Update(car);
+        await carRepo.SaveChangesAsync();
 
         return Ok($"Car {id} deleted");
     }
@@ -194,5 +177,39 @@ public class CarController(UserManager<ApiUser> userManager, ApiContext context)
             NewValue = newValue,
             OldValue = oldValue,
         };
+    }
+
+    private async Task<FullCarDto> GetFullCarDto(Car car, Dictionary<string, UserDto> users)
+    {
+        var carDto = car.ToDto();
+        foreach (var update in car.Updates)
+        {
+            var updateDto = update.ToDto();
+            updateDto.User = await GetOrFetchUserDto(update.UserId, users);
+            carDto.Updates.Add(updateDto);
+        }
+        foreach (var rental in car.Rentals)
+        {
+            var rentalDto = rental.ToDto();
+            rentalDto.User = await GetOrFetchUserDto(rental.UserId, users);
+            carDto.Rentals.Add(rentalDto);
+        }
+        return carDto;
+    }
+
+    private async Task<UserDto> GetOrFetchUserDto(string id, Dictionary<string, UserDto> users)
+    {
+        UserDto userDto;
+        if (users.TryGetValue(id, out UserDto? value) && value != null)
+        {
+            return value;
+        }
+        else
+        {
+            var user = await userManager.FindByIdAsync(id);
+            userDto = user == null ? new UserDto { Id = id } : user.ToDto();
+            users.Add(id, userDto);
+            return userDto;
+        }
     }
 }

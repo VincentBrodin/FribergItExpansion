@@ -2,6 +2,10 @@ using FribergWeb.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["DownstreamApi:BaseUrl"]) });
+builder.Services.AddHttpClient();
+
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

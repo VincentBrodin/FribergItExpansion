@@ -7,5 +7,7 @@ public class FullCarDto
     public string Model { get; set; } = string.Empty;
     public int Year { get; set; } = 0;
     public int HorsePower { get; set; } = 0;
+    public bool Deleted = false;
     public List<FullUpdateDto> Updates {get; set;} = [];
+    public List<FullRentalDto> Rentals {get; set;} = [];
 }

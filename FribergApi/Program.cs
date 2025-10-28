@@ -16,6 +16,11 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApiContext>();
 
+// Repositories
+builder.Services.AddScoped<IRepository<Car>, CarRepository>();
+builder.Services.AddScoped<IRepository<Update>, GenericRepository<Update>>();
+builder.Services.AddScoped<IRepository<Rental>, GenericRepository<Rental>>();
+
 
 builder.Services.AddAuthentication(options =>
 {
