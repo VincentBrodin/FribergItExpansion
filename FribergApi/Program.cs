@@ -10,6 +10,16 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", b =>
+    {
+        b.AllowAnyMethod();
+        b.AllowAnyHeader();
+        b.AllowAnyOrigin();
+    });
+});
+
 builder.Services.AddDbContext<ApiContext>(options => options.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
 builder.Services
     .AddIdentityCore<ApiUser>()
@@ -91,6 +101,7 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty;
         options.EnablePersistAuthorization();
     });
+    app.UseCors("AllowAll");
 }
 
 app.UseHttpsRedirection();
