@@ -1,9 +1,35 @@
 ﻿@page "/"
 @using FribergShared.Dto
+@using FribergWeb.Services
+@using Microsoft.VisualBasic
+@inject CarService carService
 
 
 <PageTitle>Home</PageTitle>
 
 <h1>Friberg</h1>
 
-Welcome to your new app.
+Cars
+<div class="w-full grid grid-cols-4 gap-4 p-4">
+  @foreach(var car in cars) {
+  <div class="card w-full bg-base-200 shadow-md">
+    <div class="card-body">
+      <h2 class="card-title"><span>@car.Make</span> <span>@car.Model</span></h2>
+      <p>Some info</p>
+      <div class="justify-end card-actions">
+        <button class="btn btn-primary">Rent</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+
+@code {
+List<FullCarDto> cars = [];
+
+  protected override async Task OnInitializedAsync()
+  {
+  cars = await carService.GetCarsAsync();
+  }
+  }
