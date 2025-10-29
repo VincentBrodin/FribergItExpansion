@@ -1,0 +1,45 @@
+@page "/auth/login"
+@using FribergShared.Dto
+@using FribergWeb.Services
+@inject AuthService authService
+@inject NavigationManager navManager
+
+<div class="grow flex justify-center items-center h-full">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                Login
+            </h2>
+            <form @onsubmit="HandleLogin" @formname="login-form">
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">UserName</legend>
+                    <input class="input" @bind="Model.UserName"/>
+                </fieldset>
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Password</legend>
+                    <input class="input" type="password" @bind="Model.Password"/>
+                </fieldset>
+                <button type="submit" class="btn btn-primary btn-wide">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    LoginDto Model = new LoginDto();
+    string? Message = null;
+
+    public async Task HandleLogin()
+    {
+        Message = null;
+        var token = await authService.GetLoginTokenAsync(Model);
+        if (string.IsNullOrEmpty(token))
+        {
+            Message = "Username or password is wrong!";
+        }
+        else
+        {
+            navManager.NavigateTo("/");
+        }
+    }
+}
