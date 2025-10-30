@@ -1,25 +1,35 @@
-﻿<div class="navbar bg-base-200 shadow-sm">
+﻿@using FribergWeb.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthService authService
+
+<div class="navbar bg-base-200 shadow-sm">
   <div class="flex-1">
     <NavLink href="/" class="btn btn-ghost text-xl">Friberg</NavLink>
   </div>
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
-      <li>
-        <NavLink href="/auth/login">Log in</NavLink>
-      </li>
-      <!-- <li> -->
-      <!-- <details> -->
-      <!-- <summary>Parent</summary> -->
-      <!-- <ul class="bg-base-100 rounded-t-none p-2"> -->
-      <!-- <li> -->
-      <!-- <NavLink>Link 1</NavLink> -->
-      <!-- </li> -->
-      <!-- <li> -->
-      <!-- <NavLink>Link 2</NavLink> -->
-      <!-- </li> -->
-      <!-- </ul> -->
-      <!-- </details> -->
-      <!-- </li> -->
+      <AuthorizeView>
+        <Authorized>
+          <li>
+            @context.User.Identity?.Name;
+            <NavLink @onclick="Logout">Log out</NavLink>
+          </li>
+        </Authorized>
+        <NotAuthorized>
+          <li>
+            <NavLink href="/auth/login">Log in</NavLink>
+          </li>
+        </NotAuthorized>
+      </AuthorizeView>
     </ul>
   </div>
 </div>
+
+
+@code {
+  public async Task Logout()
+  {
+    await authService.Logout();
+  }
+}

@@ -27,4 +27,9 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
         await authStateProvider.LoggedIn();
         return token;
     }
+
+    public async Task Logout()
+    {
+        await authStateProvider.LoggedOut();
+    }
 }

@@ -1,5 +1,7 @@
 ﻿@page "/"
+@using FribergShared.Constants
 @using FribergShared.Dto
+@using FribergWeb.Providers
 @using FribergWeb.Services
 @using Microsoft.VisualBasic
 @inject CarService carService
@@ -19,8 +21,12 @@ Cars
         <p>HP: @car.HorsePower</p>
         <p>Year: @car.Year</p>
         <div class="justify-end card-actions flex flex-row gap-2">
-          <button class="btn btn-primary">Rent</button>
-          <button class="btn btn-secondary">Edit</button>
+          <a href="/rent/@car.Id" class="btn btn-primary">Rent</a>
+          <AuthorizeView Roles="@ApiRoles.Admin">
+            <Authorized>
+              <a href="/edit/@car.Id" class="btn btn-secondary">Edit</a>
+            </Authorized>
+          </AuthorizeView>
         </div>
       </div>
     </div>
