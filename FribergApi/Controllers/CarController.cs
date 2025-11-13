@@ -16,8 +16,14 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] string id)
     {
+        var canViewDeleted = false;
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user != null)
+        {
+            canViewDeleted = await userManager.IsInRoleAsync(user, ApiRoles.Admin);
+        }
         var car = await carRepo.GetAsync(c => c.Id == id);
-        if (car == null || car.Deleted)
+        if (car == null || (car.Deleted && !canViewDeleted))
         {
             return BadRequest($"No car with id {id}");
         }
@@ -28,12 +34,20 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
     [HttpGet("/[Controller]s")]
     public async Task<IActionResult> GetAll()
     {
+
+        var canViewDeleted = false;
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user != null)
+        {
+            canViewDeleted = await userManager.IsInRoleAsync(user, ApiRoles.Admin);
+        }
         var cars = await carRepo.AllAsync();
+
         var carsDto = new List<FullCarDto>();
         var users = new Dictionary<string, UserDto>(); // Keeps a per request cache of each user
         foreach (var car in cars)
         {
-            if (car.Deleted)
+            if (car.Deleted && !canViewDeleted)
             {
                 continue;
             }
@@ -135,8 +149,7 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
 
         carRepo.Update(car);
         await carRepo.SaveChangesAsync();
-
-        return Ok(car);
+        return Ok($"Car {id} updated");
     }
 
     [HttpDelete]
@@ -162,6 +175,31 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
         await carRepo.SaveChangesAsync();
 
         return Ok($"Car {id} deleted");
+    }
+
+    [HttpPut]
+    [Authorize(Roles = ApiRoles.Admin)]
+    public async Task<IActionResult> Restore([FromQuery] string id)
+    {
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user == null)
+        {
+            return Unauthorized("Could not find user");
+        }
+
+        var car = await carRepo.GetAsync(c => c.Id == id);
+        if (car == null)
+        {
+            return BadRequest($"No car with id {id}");
+        }
+
+        var note = CreateNote(car, user, car.Updates.Count, "restore", car.Deleted.ToString(), false.ToString());
+        await updateRepo.AddAsync(note);
+        car.Deleted = false;
+        carRepo.Update(car);
+        await carRepo.SaveChangesAsync();
+
+        return Ok($"Car {id} restored");
     }
 
     private static Update CreateNote(Car car, ApiUser user, int index, string key, string oldValue, string newValue)

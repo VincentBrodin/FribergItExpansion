@@ -1,17 +1,9 @@
 ﻿@page "/"
-@using FribergShared.Constants
-@using FribergShared.Dto
-@using FribergWeb.Providers
-@using FribergWeb.Services
-@using Microsoft.VisualBasic
+
 @inject CarService carService
 
 
 <PageTitle>Home</PageTitle>
-
-<h1>Friberg</h1>
-
-Cars
 <div class="w-full grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4 p-4">
   @foreach (var car in cars)
   {
@@ -20,6 +12,10 @@ Cars
         <h2 class="card-title"><span>@car.Make</span> <span>@car.Model</span></h2>
         <p>HP: @car.HorsePower</p>
         <p>Year: @car.Year</p>
+        @if (car.Deleted)
+        {
+          <p class="text-error">DELETED</p>
+        }
         <div class="justify-end card-actions flex flex-row gap-2">
           <a href="/rent/@car.Id" class="btn btn-primary">Rent</a>
           <AuthorizeView Roles="@ApiRoles.Admin">

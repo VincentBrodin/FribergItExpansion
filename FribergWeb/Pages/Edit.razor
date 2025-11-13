@@ -1,8 +1,130 @@
 @page "/edit/{Id}"
+@using System.Data.Common
+@attribute [Authorize(Roles = ApiRoles.Admin)]
+@inject CarService carService
 
-@Id
+<div class="w-full h-full flex justify-center items-center overflow-x-hidden">
+    <div class="card">
+        <div class="card-body">
+            @if (loading)
+            {
+                <h2 class="card-title">
+                    Loading...
+                </h2>
+
+            }
+            else if (Car == null)
+            {
+                <h2 class="card-title">
+                    Not found
+                </h2>
+            }
+            else if (Car.Deleted)
+            {
+                <h2 class="card-title">
+                    Item is deleted :/
+                </h2>
+                <button @onclick="RestoreCarAsync" class="btn btn-error w-full mt-4">Restore</button>
+            }
+            else
+            {
+                <h2 class="card-title">
+                    Update @Car.Make @Car.Model @Car.Year
+                </h2>
+                @if (failed)
+                {
+                    <p class="text-xl text-red-500">
+                        Failed
+                    </p>
+                }
+                <form @onsubmit="HandleUpdate" @formname="update_car_form">
+                    <fieldset class="fieldset w-full">
+                        <legend class="fieldset-legend">Make</legend>
+                        <input class="input w-full" @bind="Model.Make" placeholder="@Car.Make" />
+                    </fieldset>
+                    <fieldset class="fieldset w-full">
+                        <legend class="fieldset-legend">Model</legend>
+                        <input class="input w-full" @bind="Model.Model" placeholder="@Car.Model" />
+                    </fieldset>
+                    <fieldset class="fieldset w-full">
+                        <legend class="fieldset-legend">Year</legend>
+                        <input class="input w-full" type="number" @bind="Model.Year" placeholder="@Car.Year" />
+                    </fieldset>
+                    <fieldset class="fieldset w-full">
+                        <legend class="fieldset-legend">HorsePower</legend>
+                        <input class="input w-full" type="number" @bind="Model.HorsePower" placeholder="@Car.HorsePower" />
+                    </fieldset>
+                    <button type="submit" class="btn btn-primary w-full mt-4">Update</button>
+                </form>
+                <button @onclick="DeleteCarAsync" class="btn btn-error w-full mt-4">Delete</button>
+                <h3 class="font-bold mt-8 mb-2 text-center">Updates</h3>
+                <div class="flex flex-col gap-2 w-full p-4 border bg-base-300 border-base-100 rounded-xl">
+                    @foreach (var update in Car.Updates)
+                    {
+                        <div class="flex flex-row gap-2 justify-between">
+                            <p class="opacity-75 text-start">[@update.Key]</p>
+                            @if (!string.IsNullOrEmpty(update.OldValue) || !string.IsNullOrEmpty(update.NewValue))
+                            {
+                                <p class=" text-center">@update.OldValue => @update.NewValue</p>
+                            }
+                            <p class="opacity-75 text-end">[@update.User.UserName]</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
-    public string Id {get; set;} = string.Empty;
+    public string Id { get; set; } = string.Empty;
+    public UpdateCarDto Model = new UpdateCarDto();
+    public FullCarDto? Car = null;
+
+    public bool loading = true;
+    public bool failed = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCarAsync();
+        loading = false;
+    }
+
+    public async Task HandleUpdate()
+    {
+        loading = true;
+        failed = !await carService.UpdateCarAsync(Id, Model);
+        Model = new UpdateCarDto();
+        await GetCarAsync();
+
+        loading = false;
+    }
+    public async Task DeleteCarAsync()
+    {
+        loading = true;
+        failed = !await carService.DeleteCarAsync(Id);
+        await GetCarAsync();
+        loading = false;
+    }
+
+    public async Task RestoreCarAsync()
+    {
+        loading = true;
+        failed = !await carService.RestoreCarAsync(Id);
+        await GetCarAsync();
+        loading = false;
+    }
+
+    public async Task GetCarAsync()
+    {
+        Car = await carService.GetCarAsync(Id);
+        if (Car != null)
+        {
+            Car.Updates = Car.Updates.OrderBy(u => u.Index).ToList();
+        }
+
+    }
+
+
 }

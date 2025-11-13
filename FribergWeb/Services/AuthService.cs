@@ -23,7 +23,7 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
         }
 
         Console.WriteLine($"Login token: {token}");
-        await localStorage.SetItemAsync("accessToken", token);
+        await localStorage.SetItemAsync("access_token", token);
         await authStateProvider.LoggedIn();
         return token;
     }

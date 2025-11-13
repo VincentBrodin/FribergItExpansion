@@ -78,11 +78,14 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
         }.Union([.. roles.Select(r => new Claim(ClaimTypes.Role, r))])
         .Union(userClaims);
 
+        var duration = Convert.ToInt32(configuration["JwtSettings:DurationInMinutes"]);
+        Console.WriteLine(duration);
+        Console.WriteLine(DateTime.UtcNow.AddMinutes(duration));
         var token = new JwtSecurityToken(
             issuer: configuration["JwtSettings:Issuer"],
             audience: configuration["JwtSettings:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(Convert.ToInt32(configuration["JwtSettings:DurationInMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(duration),
             signingCredentials: credentials
         );
 

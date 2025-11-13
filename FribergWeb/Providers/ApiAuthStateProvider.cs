@@ -10,16 +10,18 @@ public class ApiAuthStateProvider(ILocalStorageService localStorage, JwtSecurity
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var user = new ClaimsPrincipal(new ClaimsIdentity());
-        var savedToken = await localStorage.GetItemAsync<string>("accessToken");
+        var savedToken = await localStorage.GetItemAsync<string>("access_token");
 
         if (savedToken == null)
         {
+            Console.WriteLine("Nothing saved to storage");
             return new AuthenticationState(user);
         }
 
         var tokenContent = jwtSecurity.ReadJwtToken(savedToken);
-        if (tokenContent.ValidTo < DateTime.Now)
+        if (tokenContent.ValidTo < DateTime.UtcNow)
         {
+            Console.WriteLine("OLD!");
             return new AuthenticationState(user);
         }
 
@@ -38,7 +40,7 @@ public class ApiAuthStateProvider(ILocalStorageService localStorage, JwtSecurity
 
     public async Task LoggedOut()
     {
-        await localStorage.RemoveItemAsync("accessToken");
+        await localStorage.RemoveItemAsync("access_token");
         var nobody = new ClaimsPrincipal(new ClaimsIdentity());
         var authState = Task.FromResult(new AuthenticationState(nobody));
         NotifyAuthenticationStateChanged(authState);
@@ -46,7 +48,7 @@ public class ApiAuthStateProvider(ILocalStorageService localStorage, JwtSecurity
 
     private async Task<List<Claim>> GetClaimsAsync()
     {
-        var savedToken = await localStorage.GetItemAsync<string>("accessToken");
+        var savedToken = await localStorage.GetItemAsync<string>("access_token");
         var tokenContent = jwtSecurity.ReadJwtToken(savedToken);
         var claims = tokenContent.Claims.ToList();
         claims.Add(new Claim(ClaimTypes.Name, tokenContent.Subject));

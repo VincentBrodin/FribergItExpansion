@@ -12,7 +12,9 @@
       <AuthorizeView>
         <Authorized>
           <li>
-            @context.User.Identity?.Name;
+            <NavLink>@context.User.Identity?.Name</NavLink>
+          </li>
+          <li>
             <NavLink @onclick="Logout">Log out</NavLink>
           </li>
         </Authorized>
