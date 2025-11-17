@@ -92,8 +92,7 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
         await carRepo.AddAsync(car);
         await updateRepo.AddAsync(createNote);
         await carRepo.SaveChangesAsync();
-
-        return Ok(car);
+        return Ok(car?.Id);
     }
 
 

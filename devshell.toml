@@ -1,0 +1,10 @@
+# https://numtide.github.io/devshell
+[devshell]
+packages = [
+  "dotnet-sdk_9",
+  "dotnet-ef",
+  "csharp-ls",
+  "vscode-fhs",
+  "sqlcmd",
+  "nodejs_24",
+]

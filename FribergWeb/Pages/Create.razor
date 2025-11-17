@@ -1,0 +1,79 @@
+@page "/create"
+
+@attribute [Authorize(Roles = ApiRoles.Admin)]
+@inject CarService carService
+
+<div class="w-full h-full flex justify-center items-center overflow-x-hidden">
+    <div class="card">
+        <div class="card-body">
+            @if (loading)
+            {
+                <h2 class="card-title">
+                    Loading...
+                </h2>
+
+            }
+            <h2 class="card-title">
+                Create car
+            </h2>
+            @if (failed)
+            {
+                <p class="text-xl text-red-500">
+                    Failed
+                </p>
+            }
+            <p class="text-xl text-green-500">
+                @message
+            </p>
+            <form @onsubmit="HandleCreate" @formname="create_car_form">
+                <fieldset class="fieldset w-full">
+                    <legend class="fieldset-legend">Make</legend>
+                    <input class="input w-full" @bind="Model.Make" disabled="@loading" />
+                </fieldset>
+                <fieldset class="fieldset w-full">
+                    <legend class="fieldset-legend">Model</legend>
+                    <input class="input w-full" @bind="Model.Model" disabled="@loading" />
+                </fieldset>
+                <fieldset class="fieldset w-full">
+                    <legend class="fieldset-legend">Year</legend>
+                    <input class="input w-full" type="number" @bind="Model.Year" disabled="@loading" />
+                </fieldset>
+                <fieldset class="fieldset w-full">
+                    <legend class="fieldset-legend">HorsePower</legend>
+                    <input class="input w-full" type="number" @bind="Model.HorsePower" disabled="@loading" />
+                </fieldset>
+                <button type="submit" class="btn btn-primary w-full mt-4" disabled="@loading">Create</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    public CreateCarDto Model = new CreateCarDto();
+    public bool loading = true;
+    public bool failed = false;
+    public string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = false;
+    }
+
+    public async Task HandleCreate()
+    {
+        message = "";
+        loading = true;
+        var id = await carService.CreateCarAsync(Model);
+        if (id == null)
+        {
+            failed = true;
+        }
+        else
+        {
+            message = "Car created successfully";
+            failed = false;
+            Model = new CreateCarDto();
+        }
+        loading = false;
+    }
+}

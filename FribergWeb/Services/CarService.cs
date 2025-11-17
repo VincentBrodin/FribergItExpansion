@@ -27,6 +27,23 @@ public class CarService(HttpClient client, ILocalStorageService localStorage)
         return await result.Content.ReadFromJsonAsync<FullCarDto>();
     }
 
+
+    public async Task<string?> CreateCarAsync(CreateCarDto model)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/Car")
+        {
+            Content = JsonContent.Create(model)
+        };
+
+        var token = await localStorage.GetItemAsync<string>("access_token");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.SendAsync(request);
+        var id = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(id);
+        return id;
+    }
+
     public async Task<bool> UpdateCarAsync(string id, UpdateCarDto model)
     {
         var request = new HttpRequestMessage(HttpMethod.Patch, QueryHelpers.AddQueryString("/Car", "id", id))

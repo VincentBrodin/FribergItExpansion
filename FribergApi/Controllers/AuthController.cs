@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using FribergApi.Tools;
 
 namespace FribergApi.Controllers;
 
@@ -14,6 +15,10 @@ namespace FribergApi.Controllers;
 [Route("[Controller]")]
 public class AuthController(UserManager<ApiUser> userManager, IConfiguration configuration) : ControllerBase
 {
+    private static readonly List<string> KnownAdmins = new() {
+       "vincent.brodin21@gmail.com",
+    };
+
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto register)
     {
@@ -36,11 +41,19 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
             return BadRequest(res.Errors);
         }
 
-        await userManager.AddToRoleAsync(user, ApiRoles.User);
+        if (KnownAdmins.Contains(user.Email))
+        {
+            await userManager.AddToRoleAsync(user, ApiRoles.Admin);
+        }
+        else
+        {
+            await userManager.AddToRoleAsync(user, ApiRoles.User);
+        }
 
         string token = await GenerateToken(user);
         return Ok(token);
     }
+
 
 
     [HttpPost("Login")]
@@ -62,6 +75,29 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
         return Ok(token);
     }
 
+    [HttpDelete("Delete")]
+    public async Task<IActionResult> Delete()
+    {
+
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user == null)
+        {
+            return Unauthorized("Only signed in users can delete their accounts");
+        }
+
+        var res = await userManager.DeleteAsync(user);
+
+        if (res == null)
+        {
+            return BadRequest();
+        }
+        else if (!res.Succeeded)
+        {
+            return BadRequest(res.Errors);
+        }
+
+        return Ok("User deleted");
+    }
     private async Task<string> GenerateToken(ApiUser user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"] ?? throw new NullReferenceException("Missing jwt secret key")));
