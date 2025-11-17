@@ -2817,12 +2817,6 @@
   .min-h-screen {
     min-height: 100vh;
   }
-  .btn-wide {
-    @layer daisyui.modifier {
-      width: 100%;
-      max-width: calc(0.25rem * 64);
-    }
-  }
   .w-25 {
     width: calc(var(--spacing) * 25);
   }

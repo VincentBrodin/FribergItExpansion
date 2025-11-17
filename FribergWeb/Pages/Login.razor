@@ -4,7 +4,7 @@
 @inject AuthService authService
 @inject NavigationManager navManager
 
-<div class="grow flex justify-center items-center h-full">
+<div class="grow flex justify-center items-center h-full w-full">
     <div class="card">
         <div class="card-body">
             <h2 class="card-title">
@@ -13,13 +13,15 @@
             <form @onsubmit="HandleLogin" @formname="login-form">
                 <fieldset class="fieldset">
                     <legend class="fieldset-legend">UserName</legend>
-                    <input class="input" @bind="Model.UserName"/>
+                    <input class="input w-full" @bind="Model.UserName"/>
                 </fieldset>
                 <fieldset class="fieldset">
                     <legend class="fieldset-legend">Password</legend>
-                    <input class="input" type="password" @bind="Model.Password"/>
+                    <input class="input w-full" type="password" @bind="Model.Password"/>
                 </fieldset>
-                <button type="submit" class="btn btn-primary btn-wide">Login</button>
+                <p class="text-xl text-red-500">@Message</p>
+                <button type="submit" class="btn btn-primary mt-4 w-full">Login</button>
+                <NavLink href="/auth/register" class="btn btn-link mt-2">Dont have an account? Create one</NavLink>
             </form>
         </div>
     </div>
@@ -27,11 +29,13 @@
 
 @code {
     LoginDto Model = new LoginDto();
-    string? Message = null;
+    string Message = "";
+    bool loading = false;
 
     public async Task HandleLogin()
     {
-        Message = null;
+        loading = true;
+        Message = "";
         var token = await authService.GetLoginTokenAsync(Model);
         if (string.IsNullOrEmpty(token))
         {

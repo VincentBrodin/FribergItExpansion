@@ -1,9 +1,63 @@
 @page "/rent/{Id}"
+@using System.Data
+@using System.Globalization
+@inject CarService carService
+@inject RentalService rentalService
 
-@Id
-
+<div class="w-full h-full flex justify-center items-center overflow-x-hidden">
+    <div class="card">
+        <div class="card-body">
+            @if (Car == null)
+            {
+                <h2 class="card-title">
+                    Not found
+                </h2>
+            }
+            else if (Car.Deleted)
+            {
+                <h2 class="card-title">
+                    Item is deleted :/
+                </h2>
+            }
+            else
+            {
+                <h2 class="card-title">
+                    Update @Car.Make @Car.Model @Car.Year
+                </h2>
+                <form @onsubmit="HandleRent" @formname="rent_car_form">
+                    <fieldset class="fieldset w-full">
+                        <legend class="fieldset-legend">Start</legend>
+                        <input class="input w-full" type="datetime-local" @bind="Model.Start" disabled="@loading"/>
+                    </fieldset>
+                    <fieldset class="fieldset w-full">
+                        <legend class="fieldset-legend">End</legend>
+                        <input class="input w-full" type="datetime-local" @bind="Model.End" disabled="@loading"/>
+                    </fieldset>
+                    <button type="submit" class="btn btn-primary w-full mt-4" disabled="@loading">Rent</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
     public string Id {get; set;} = string.Empty;
+    public RentCarDto Model = new RentCarDto() {
+        Start = DateTime.Now,
+        End = DateTime.Now,
+    };
+    public bool loading = false;
+    public FullCarDto? Car = null;
+
+      protected override async Task OnInitializedAsync()
+    {
+        Car = await carService.GetCarAsync(Id);
+    }
+
+     public async Task HandleRent()
+    {
+        loading = true;
+        await rentalService.RentCarAsync(Id, Model);
+    }
 }

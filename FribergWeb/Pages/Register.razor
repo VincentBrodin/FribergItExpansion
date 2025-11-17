@@ -1,0 +1,56 @@
+@page "/auth/register"
+@using FribergShared.Dto
+@using FribergWeb.Services
+@inject AuthService authService
+@inject NavigationManager navManager
+
+<div class="grow flex justify-center items-center h-full w-full">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">
+                Register
+            </h2>
+            <form @onsubmit="HandleLogin" @formname="login-form">
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">First Name</legend>
+                    <input class="input w-full" @bind="Model.FirstName" />
+                </fieldset>
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Last Name</legend>
+                    <input class="input w-full" @bind="Model.LastName" />
+                </fieldset>
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Email</legend>
+                    <input class="input w-full" type="email" @bind="Model.Email" />
+                </fieldset>
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Password</legend>
+                    <input class="input w-full" type="password" @bind="Model.Password" />
+                </fieldset>
+                <p class="text-xl text-red-500">@Message</p>
+                <button type="submit" class="btn btn-primary mt-4 w-full">Register</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    RegisterDto Model = new RegisterDto();
+    string Message = "";
+    bool loading = false;
+
+    public async Task HandleLogin()
+    {
+        loading = true;
+        Message = "";
+        var token = await authService.RegisterAsync(Model);
+        if (string.IsNullOrEmpty(token))
+        {
+            Message = "Could not create an account for you.";
+        }
+        else
+        {
+            navManager.NavigateTo("/");
+        }
+    }
+}

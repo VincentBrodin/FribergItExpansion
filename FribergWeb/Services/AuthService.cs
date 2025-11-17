@@ -8,6 +8,27 @@ namespace FribergWeb.Services;
 
 public class AuthService(HttpClient client, ILocalStorageService localStorage, ApiAuthStateProvider authStateProvider)
 {
+
+    public async Task<string?> RegisterAsync(RegisterDto registerDto)
+    {
+        Console.WriteLine("Trying to register");
+        var res = await client.PostAsJsonAsync("/Auth/Register", registerDto);
+        if (res == null || res.StatusCode != HttpStatusCode.OK)
+        {
+            return null;
+        }
+        var token = await res.Content.ReadAsStringAsync();
+        if (string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        Console.WriteLine($"Regsiter token: {token}");
+        await localStorage.SetItemAsync("access_token", token);
+        await authStateProvider.LoggedIn();
+        return token;
+    }
+
     public async Task<string?> GetLoginTokenAsync(LoginDto loginDto)
     {
         Console.WriteLine("Trying to login");

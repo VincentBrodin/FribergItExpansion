@@ -41,6 +41,6 @@ public class RentalController(UserManager<ApiUser> userManager, IRepository<Rent
 
         await rentalRepo.AddAsync(rental);
         await rentalRepo.SaveChangesAsync();
-        return Ok(rental);
+        return Ok(rental.ToDto());
     }
 }
