@@ -31,11 +31,11 @@ Detta projekt är en vidareutveckling av tidigare inlämningsuppgift, där **Fri
 ## Kom igång
 
 ```bash
-  git clone https://github.com/VincentBrodin/FribergItExpansion.git
-  cd FribergItExpansion
-  dotnet restore
-  dotnet run --project FribergApi
-  dotnet run --project FribergWeb
+git clone https://github.com/VincentBrodin/FribergItExpansion.git
+cd FribergItExpansion
+dotnet restore
+dotnet run --project FribergApi
+dotnet run --project FribergWeb
 ```
 
 ## Teknologier
@@ -52,8 +52,3 @@ Detta projekt är en vidareutveckling av tidigare inlämningsuppgift, där **Fri
 - Repository-pattern gör backend mer modulär och lätt att underhålla.
 - DTO:er säkerställer tydlig och säker dataöverföring mellan frontend och backend.
 - Tokenförnyelse via refresh tokens ger smidig och säker användarupplevelse.
-
-### Nivåkrav
-
-- **G:** Full funktionalitet via Web API.
-- **VG:** Säker JWT + refresh token-hantering, Repository-pattern, DTO-användning och tydlig adminhantering.
