@@ -33,19 +33,21 @@
                 <form @onsubmit="HandleUpdate" @formname="update_car_form">
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">Make</legend>
-                        <input class="input w-full" @bind="Model.Make" placeholder="@Car.Make" disabled="@loading"/>
+                        <input class="input w-full" @bind="Model.Make" placeholder="@Car.Make" disabled="@loading" />
                     </fieldset>
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">Model</legend>
-                        <input class="input w-full" @bind="Model.Model" placeholder="@Car.Model" disabled="@loading"/>
+                        <input class="input w-full" @bind="Model.Model" placeholder="@Car.Model" disabled="@loading" />
                     </fieldset>
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">Year</legend>
-                        <input class="input w-full" type="number" @bind="Model.Year" placeholder="@Car.Year" disabled="@loading"/>
+                        <input class="input w-full" type="number" @bind="Model.Year" placeholder="@Car.Year"
+                            disabled="@loading" />
                     </fieldset>
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">HorsePower</legend>
-                        <input class="input w-full" type="number" @bind="Model.HorsePower" placeholder="@Car.HorsePower" disabled="@loading"/>
+                        <input class="input w-full" type="number" @bind="Model.HorsePower" placeholder="@Car.HorsePower"
+                            disabled="@loading" />
                     </fieldset>
                     <button type="submit" class="btn btn-primary w-full mt-4" disabled="@loading">Update</button>
                 </form>
@@ -54,13 +56,38 @@
                 <div class="flex flex-col gap-2 w-full p-4 border bg-base-300 border-base-100 rounded-xl">
                     @foreach (var update in Car.Updates)
                     {
-                        <div class="flex flex-row gap-2 justify-between">
-                            <p class="opacity-75 text-start">[@update.Key]</p>
-                            @if (!string.IsNullOrEmpty(update.OldValue) || !string.IsNullOrEmpty(update.NewValue))
+                        <div class="flex flex-col gap-2 bg-base-100 rounded-xl p-2">
+                            <div class="flex flex-row gap-2 justify-between">
+                                <p class="opacity-75 text-start">[@update.Key]</p>
+                                @if (!string.IsNullOrEmpty(update.OldValue) || !string.IsNullOrEmpty(update.NewValue))
+                                {
+                                    <p class=" text-center">@update.OldValue => @update.NewValue</p>
+                                }
+                                <p class="opacity-75 text-end">[@update.User.UserName]</p>
+                            </div>
+                            @if (!NonRollbackKeys.Contains(update.Key))
                             {
-                                <p class=" text-center">@update.OldValue => @update.NewValue</p>
+                                <button class="btn btn-error">
+                                    Rollback
+                                </button>
                             }
-                            <p class="opacity-75 text-end">[@update.User.UserName]</p>
+                        </div>
+
+                    }
+                </div>
+                <h3 class="font-bold mt-8 mb-2 text-center">Rentals</h3>
+                <div class="flex flex-col gap-2 w-full p-4 border bg-base-300 border-base-100 rounded-xl">
+                    @foreach (var rental in Car.Rentals)
+                    {
+                        <div class="flex flex-col gap-2 bg-base-100 rounded-xl p-2">
+                            <div class="flex flex-row gap-2 justify-between">
+                                <p class="text-start">[@rental.User.UserName]</p>
+                                <p class="text-center">From: @rental.Start.ToString()</p>
+                                <p class="text-end">To: @rental.End.ToString()</p>
+                            </div>
+                            <button class="btn btn-error">
+                                Remove
+                            </button>
                         </div>
                     }
                 </div>
@@ -78,6 +105,11 @@
     public bool loading = true;
     public bool failed = false;
 
+    public static readonly List<string> NonRollbackKeys = new List<string>() {
+"created",
+"deleted",
+"restore",
+};
     protected override async Task OnInitializedAsync()
     {
         await GetCarAsync();

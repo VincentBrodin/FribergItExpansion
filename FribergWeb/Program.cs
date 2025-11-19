@@ -18,6 +18,7 @@ builder.Services.AddScoped<ApiAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<ApiAuthStateProvider>());
 builder.Services.AddScoped<JwtSecurityTokenHandler>();
 builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<RentalService>();
 builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddAuthorizationCore();

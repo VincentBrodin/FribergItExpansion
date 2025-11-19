@@ -8,16 +8,38 @@ using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using FribergApi.Tools;
+using Microsoft.AspNetCore.Authorization;
+using FribergApi.Data;
 
 namespace FribergApi.Controllers;
 
 [ApiController]
 [Route("[Controller]")]
-public class AuthController(UserManager<ApiUser> userManager, IConfiguration configuration) : ControllerBase
+public class AuthController(UserManager<ApiUser> userManager, IConfiguration configuration, IRepository<Rental> rentalRepo, IRepository<Car> carRepo) : ControllerBase
 {
     private static readonly List<string> KnownAdmins = new() {
        "vincent.brodin21@gmail.com",
     };
+
+    [HttpGet("Fetch")]
+    [Authorize]
+    public async Task<IActionResult> Fetch()
+    {
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var userDto = user.ToDto();
+        var fullUserDto = user.ToFullDto();
+        var rentals = await rentalRepo.FindAsync(r => r.UserId == user.Id);
+        foreach (var rental in rentals)
+        {
+            fullUserDto.Rentals.Add(await GetFullRentalDto(rental));
+        }
+        return Ok(fullUserDto);
+    }
 
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto register)
@@ -53,7 +75,6 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
         string token = await GenerateToken(user);
         return Ok(token);
     }
-
 
 
     [HttpPost("Login")]
@@ -126,5 +147,14 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+
+    private async Task<FullRentalDto> GetFullRentalDto(Rental rental)
+    {
+        var dto = rental.ToDto();
+        dto.Car = (await carRepo.GetAsync(c => c.Id == rental.CarId) ?? new Car() { Id = rental.Id }).ToDto();
+        dto.User = (await userManager.FindByIdAsync(rental.UserId) ?? new ApiUser()).ToDto();
+        return dto;
     }
 }

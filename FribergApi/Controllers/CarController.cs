@@ -218,7 +218,7 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
 
     private async Task<FullCarDto> GetFullCarDto(Car car, Dictionary<string, UserDto> users)
     {
-        var carDto = car.ToDto();
+        var carDto = car.ToFullDto();
         foreach (var update in car.Updates)
         {
             var updateDto = update.ToDto();

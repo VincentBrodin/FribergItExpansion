@@ -17,6 +17,17 @@ public class ApiUser : IdentityUser
             FirstName = FirstName,
             LastName = LastName,
         };
+    }
 
+    public FullUserDto ToFullDto()
+    {
+        return new FullUserDto
+        {
+            Id = Id,
+            UserName = UserName ?? string.Empty,
+            FirstName = FirstName,
+            LastName = LastName,
+            Rentals = [],
+        };
     }
 }

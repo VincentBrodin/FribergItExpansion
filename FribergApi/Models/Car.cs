@@ -16,7 +16,19 @@ public class Car
     public List<Update> Updates { get; set; } = [];
     public List<Rental> Rentals { get; set; } = [];
 
-    public FullCarDto ToDto()
+    public CarDto ToDto()
+    {
+        return new CarDto
+        {
+            Id = Id,
+            Make = Make,
+            Model = Model,
+            Year = Year,
+            HorsePower = HorsePower,
+            Deleted = Deleted,
+        };
+    }
+    public FullCarDto ToFullDto()
     {
         return new FullCarDto
         {

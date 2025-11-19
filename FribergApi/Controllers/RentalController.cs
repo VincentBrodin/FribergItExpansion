@@ -41,6 +41,15 @@ public class RentalController(UserManager<ApiUser> userManager, IRepository<Rent
 
         await rentalRepo.AddAsync(rental);
         await rentalRepo.SaveChangesAsync();
-        return Ok(rental.ToDto());
+        return Ok(GetFullRentalDto(rental));
+    }
+
+
+    private async Task<FullRentalDto> GetFullRentalDto(Rental rental)
+    {
+        var dto = rental.ToDto();
+        dto.Car = (await carRepo.GetAsync(c => c.Id == rental.CarId) ?? new Car() { Id = rental.Id }).ToDto();
+        dto.User = (await userManager.FindByIdAsync(rental.UserId) ?? new ApiUser()).ToDto();
+        return dto;
     }
 }

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Blazored.LocalStorage;
 using FribergShared.Dto;
@@ -8,6 +9,24 @@ namespace FribergWeb.Services;
 
 public class AuthService(HttpClient client, ILocalStorageService localStorage, ApiAuthStateProvider authStateProvider)
 {
+
+    public async Task<FullUserDto?> FetchAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "/Auth/Fetch");
+        var token = await localStorage.GetItemAsync<string>("access_token");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var result = await client.SendAsync(request);
+        return await result.Content.ReadFromJsonAsync<FullUserDto>();
+    }
+
+    public async Task<bool> DeleteAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/Auth/Delete");
+        var token = await localStorage.GetItemAsync<string>("access_token");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var result = await client.SendAsync(request);
+        return result.StatusCode == HttpStatusCode.OK;
+    }
 
     public async Task<string?> RegisterAsync(RegisterDto registerDto)
     {
@@ -29,7 +48,7 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
         return token;
     }
 
-    public async Task<string?> GetLoginTokenAsync(LoginDto loginDto)
+    public async Task<string?> LoginAsync(LoginDto loginDto)
     {
         Console.WriteLine("Trying to login");
         var res = await client.PostAsJsonAsync("/Auth/Login", loginDto);

@@ -1,7 +1,7 @@
+
 namespace FribergShared.Dto;
 
-public class FullCarDto : CarDto
+public class FullUserDto : UserDto
 {
-    public List<FullUpdateDto> Updates {get; set;} = [];
     public List<FullRentalDto> Rentals {get; set;} = [];
 }
