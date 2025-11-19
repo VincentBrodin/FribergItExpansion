@@ -13,7 +13,17 @@ public class Rental
     public DateTime End { get; set; }
 
 
-    public FullRentalDto ToDto()
+    public RentalDto ToDto()
+    {
+        return new RentalDto
+        {
+            Id = Id,
+            Start = Start,
+            End = End,
+        };
+    }
+
+    public FullRentalDto ToFullDto()
     {
         return new FullRentalDto
         {

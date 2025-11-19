@@ -25,14 +25,14 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
         var token = await localStorage.GetItemAsync<string>("access_token");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var result = await client.SendAsync(request);
-        return result.StatusCode == HttpStatusCode.OK;
+        return result.IsSuccessStatusCode;
     }
 
     public async Task<string?> RegisterAsync(RegisterDto registerDto)
     {
         Console.WriteLine("Trying to register");
         var res = await client.PostAsJsonAsync("/Auth/Register", registerDto);
-        if (res == null || res.StatusCode != HttpStatusCode.OK)
+        if (res == null || !res.IsSuccessStatusCode)
         {
             return null;
         }
@@ -52,7 +52,7 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
     {
         Console.WriteLine("Trying to login");
         var res = await client.PostAsJsonAsync("/Auth/Login", loginDto);
-        if (res == null || res.StatusCode != HttpStatusCode.OK)
+        if (res == null || !res.IsSuccessStatusCode)
         {
             return null;
         }

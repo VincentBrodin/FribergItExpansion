@@ -4,42 +4,54 @@
 @inject AuthService authService
 @inject NavigationManager navManager
 
-<div class="grow flex justify-center items-center h-full w-full">
-    <div class="card">
-        <div class="card-body">
-            <h2 class="card-title">
-                Register
-            </h2>
-            <form @onsubmit="HandleLogin" @formname="login-form">
-                <fieldset class="fieldset">
+<div class="grow flex justify-center items-center h-full w-full p-4">
+    <div class="card bg-base-200 shadow-lg hover:shadow-xl transition-shadow w-full max-w-md">
+        <div class="card-body flex flex-col gap-4">
+            <h2 class="card-title text-center text-2xl font-bold">Register</h2>
+
+            <form @onsubmit="HandleRegister" @formname="register-form" class="flex flex-col gap-4">
+                <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">First Name</legend>
-                    <input class="input w-full" @bind="Model.FirstName" />
+                    <input class="input w-full" @bind="Model.FirstName" placeholder="Enter your first name" />
                 </fieldset>
-                <fieldset class="fieldset">
+
+                <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Last Name</legend>
-                    <input class="input w-full" @bind="Model.LastName" />
+                    <input class="input w-full" @bind="Model.LastName" placeholder="Enter your last name" />
                 </fieldset>
-                <fieldset class="fieldset">
+
+                <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Email</legend>
-                    <input class="input w-full" type="email" @bind="Model.Email" />
+                    <input class="input w-full" type="email" @bind="Model.Email" placeholder="Enter your email" />
                 </fieldset>
-                <fieldset class="fieldset">
+
+                <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Password</legend>
-                    <input class="input w-full" type="password" @bind="Model.Password" />
+                    <input class="input w-full" type="password" @bind="Model.Password" placeholder="Enter your password" />
                 </fieldset>
-                <p class="text-xl text-red-500">@Message</p>
-                <button type="submit" class="btn btn-primary mt-4 w-full">Register</button>
+
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <p class="text-red-500 text-center font-medium">@Message</p>
+                }
+
+                <button type="submit" class="btn btn-primary w-full mt-2">Register</button>
+
+                <NavLink href="/auth/login" class="btn btn-link w-full mt-2 text-center">
+                    Already have an account? Login
+                </NavLink>
             </form>
         </div>
     </div>
 </div>
+
 
 @code {
     RegisterDto Model = new RegisterDto();
     string Message = "";
     bool loading = false;
 
-    public async Task HandleLogin()
+    public async Task HandleRegister()
     {
         loading = true;
         Message = "";

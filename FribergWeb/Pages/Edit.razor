@@ -2,35 +2,31 @@
 @using System.Data.Common
 @attribute [Authorize(Roles = ApiRoles.Admin)]
 @inject CarService carService
+@inject RentalService rentalService
 
-<div class="w-full h-full flex justify-center items-center overflow-x-hidden">
-    <div class="card">
-        <div class="card-body">
+<div class="w-full h-full flex justify-center items-start p-4 overflow-x-hidden">
+    <div class="card bg-base-200 shadow-lg hover:shadow-xl transition-shadow flex flex-col w-full max-w-3xl h-full">
+        <div class="card-body flex flex-col flex-1 gap-4">
             @if (Car == null)
             {
-                <h2 class="card-title">
-                    Not found
-                </h2>
+                <h2 class="card-title text-center">Not found</h2>
             }
             else if (Car.Deleted)
             {
-                <h2 class="card-title">
-                    Item is deleted :/
-                </h2>
+                <h2 class="card-title text-center">Item is deleted :/</h2>
                 <button @onclick="RestoreCarAsync" class="btn btn-error w-full mt-4">Restore</button>
             }
             else
             {
-                <h2 class="card-title">
-                    Update @Car.Make @Car.Model @Car.Year
-                </h2>
+                <h2 class="card-title text-center">Update @Car.Make @Car.Model @Car.Year</h2>
+
                 @if (failed)
                 {
-                    <p class="text-xl text-red-500">
-                        Failed
-                    </p>
+                    <p class="text-red-500 text-center font-semibold">Update failed!</p>
                 }
-                <form @onsubmit="HandleUpdate" @formname="update_car_form">
+
+                <!-- Update Form -->
+                <form @onsubmit="HandleUpdate" @formname="update_car_form" class="flex flex-col gap-4">
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">Make</legend>
                         <input class="input w-full" @bind="Model.Make" placeholder="@Car.Make" disabled="@loading" />
@@ -49,48 +45,46 @@
                         <input class="input w-full" type="number" @bind="Model.HorsePower" placeholder="@Car.HorsePower"
                             disabled="@loading" />
                     </fieldset>
-                    <button type="submit" class="btn btn-primary w-full mt-4" disabled="@loading">Update</button>
+
+                    <button type="submit" class="btn btn-primary w-full mt-auto" disabled="@loading">Update</button>
                 </form>
-                <button @onclick="DeleteCarAsync" class="btn btn-error w-full mt-4" disabled="@loading">Delete</button>
-                <h3 class="font-bold mt-8 mb-2 text-center">Updates</h3>
-                <div class="flex flex-col gap-2 w-full p-4 border bg-base-300 border-base-100 rounded-xl">
+
+                <button @onclick="DeleteCarAsync" class="btn btn-error w-full mt-2" disabled="@loading">Delete</button>
+
+                <!-- Updates Section -->
+                <h3 class="font-bold text-2xl mt-6 mb-4 text-center">Updates</h3>
+                <div class="flex flex-col gap-3 w-full">
                     @foreach (var update in Car.Updates)
                     {
-                        <div class="flex flex-col gap-2 bg-base-100 rounded-xl p-2">
-                            <div class="flex flex-row gap-2 justify-between">
-                                <p class="opacity-75 text-start">[@update.Key]</p>
-                                @if (!string.IsNullOrEmpty(update.OldValue) || !string.IsNullOrEmpty(update.NewValue))
-                                {
-                                    <p class=" text-center">@update.OldValue => @update.NewValue</p>
-                                }
-                                <p class="opacity-75 text-end">[@update.User.UserName]</p>
-                            </div>
-                            @if (!NonRollbackKeys.Contains(update.Key))
+                        <div class="card bg-base-300 p-3 rounded-lg shadow-sm flex flex-col gap-2">
+                            <p class="font-semibold">@update.Key</p>
+                            @if (!string.IsNullOrEmpty(update.OldValue) && !string.IsNullOrEmpty(update.NewValue))
                             {
-                                <button class="btn btn-error">
-                                    Rollback
-                                </button>
+                                <p>From: @update.OldValue</p>
+                                <p>To: @update.NewValue</p>
                             }
+                            <p class="font-semibold">By @update.User.UserName</p>
                         </div>
-
                     }
                 </div>
-                <h3 class="font-bold mt-8 mb-2 text-center">Rentals</h3>
-                <div class="flex flex-col gap-2 w-full p-4 border bg-base-300 border-base-100 rounded-xl">
+
+                <!-- Rentals Section -->
+                <h3 class="font-bold text-2xl mt-6 mb-4 text-center">Rentals</h3>
+                <div class="flex flex-col gap-3 w-full">
                     @foreach (var rental in Car.Rentals)
                     {
-                        <div class="flex flex-col gap-2 bg-base-100 rounded-xl p-2">
-                            <div class="flex flex-row gap-2 justify-between">
-                                <p class="text-start">[@rental.User.UserName]</p>
-                                <p class="text-center">From: @rental.Start.ToString()</p>
-                                <p class="text-end">To: @rental.End.ToString()</p>
-                            </div>
-                            <button class="btn btn-error">
-                                Remove
+                        <div class="card bg-base-300 p-3 rounded-lg shadow-sm flex flex-col gap-2">
+                            <p class="font-semibold">@rental.User.UserName</p>
+                            <p>From: @rental.Start.ToString("g")</p>
+                            <p>To: @rental.End.ToString("g")</p>
+                            <button @onclick="() => DeleteRentalAsync(rental.Id)" class="btn btn-error btn-sm mt-2 self-end"
+                                disabled="@loading">
+                                Delete
                             </button>
                         </div>
                     }
                 </div>
+
             }
         </div>
     </div>
@@ -148,7 +142,14 @@
         {
             Car.Updates = Car.Updates.OrderBy(u => u.Index).ToList();
         }
+    }
 
+    public async Task DeleteRentalAsync(string id)
+    {
+        loading = true;
+        await rentalService.DeleteAsync(id);
+        await GetCarAsync();
+        loading = false;
     }
 
 

@@ -1,6 +1,7 @@
 using FribergApi.Data;
 using FribergApi.Models;
 using FribergApi.Tools;
+using FribergShared.Constants;
 using FribergShared.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -28,8 +29,6 @@ public class RentalController(UserManager<ApiUser> userManager, IRepository<Rent
             return Unauthorized("Could not find user");
         }
 
-
-
         var rental = new Rental
         {
             Id = Guid.NewGuid().ToString(),
@@ -41,15 +40,41 @@ public class RentalController(UserManager<ApiUser> userManager, IRepository<Rent
 
         await rentalRepo.AddAsync(rental);
         await rentalRepo.SaveChangesAsync();
-        return Ok(GetFullRentalDto(rental));
+        return Ok(await GetFullRentalDto(rental));
+    }
+
+    [HttpDelete]
+    [Authorize]
+    public async Task<IActionResult> Delete([FromQuery] string id)
+    {
+        var user = await Auth.GetUser(HttpContext, userManager);
+        if (user == null)
+        {
+            return Unauthorized("Could not find user");
+        }
+
+        var rental = await rentalRepo.GetAsync(r => r.Id == id);
+        if (rental == null)
+        {
+            return NotFound($"Could not find rental with id {id}");
+        }
+
+        if (rental.UserId != user.Id || !await userManager.IsInRoleAsync(user, ApiRoles.Admin))
+        {
+            return Unauthorized("You cannot edit/delete unless you own the rental, or are an admin");
+        }
+
+        rentalRepo.Remove(rental);
+        await rentalRepo.SaveChangesAsync();
+        return Ok("Deleted rental");
     }
 
 
     private async Task<FullRentalDto> GetFullRentalDto(Rental rental)
     {
-        var dto = rental.ToDto();
-        dto.Car = (await carRepo.GetAsync(c => c.Id == rental.CarId) ?? new Car() { Id = rental.Id }).ToDto();
-        dto.User = (await userManager.FindByIdAsync(rental.UserId) ?? new ApiUser()).ToDto();
+        var dto = rental.ToFullDto();
+        dto.Car = (await carRepo.GetAsync(c => c.Id == rental.CarId) ?? new Car() { Id = rental.CarId }).ToDto();
+        dto.User = (await userManager.FindByIdAsync(rental.UserId) ?? new ApiUser() { Id = rental.UserId }).ToDto();
         return dto;
     }
 }

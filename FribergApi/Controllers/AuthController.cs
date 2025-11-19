@@ -152,7 +152,7 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
 
     private async Task<FullRentalDto> GetFullRentalDto(Rental rental)
     {
-        var dto = rental.ToDto();
+        var dto = rental.ToFullDto();
         dto.Car = (await carRepo.GetAsync(c => c.Id == rental.CarId) ?? new Car() { Id = rental.Id }).ToDto();
         dto.User = (await userManager.FindByIdAsync(rental.UserId) ?? new ApiUser()).ToDto();
         return dto;

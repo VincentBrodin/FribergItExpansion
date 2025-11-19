@@ -192,7 +192,7 @@ public class CarController(UserManager<ApiUser> userManager, IRepository<Car> ca
             return BadRequest($"No car with id {id}");
         }
 
-        var note = CreateNote(car, user, car.Updates.Count, "restore", car.Deleted.ToString(), false.ToString());
+        var note = CreateNote(car, user, car.Updates.Count, "deleted", car.Deleted.ToString(), false.ToString());
         await updateRepo.AddAsync(note);
         car.Deleted = false;
         carRepo.Update(car);

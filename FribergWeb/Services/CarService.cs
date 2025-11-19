@@ -55,8 +55,7 @@ public class CarService(HttpClient client, ILocalStorageService localStorage)
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.SendAsync(request);
-        Console.WriteLine(response.StatusCode);
-        return response.StatusCode == HttpStatusCode.OK;
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteCarAsync(string id)
@@ -66,8 +65,7 @@ public class CarService(HttpClient client, ILocalStorageService localStorage)
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.SendAsync(request);
-        Console.WriteLine(response.StatusCode);
-        return response.StatusCode == HttpStatusCode.OK;
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RestoreCarAsync(string id)
@@ -77,7 +75,6 @@ public class CarService(HttpClient client, ILocalStorageService localStorage)
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.SendAsync(request);
-        Console.WriteLine(response.StatusCode);
-        return response.StatusCode == HttpStatusCode.OK;
+        return response.IsSuccessStatusCode;
     }
 }

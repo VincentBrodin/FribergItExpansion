@@ -8,3 +8,7 @@ packages = [
   "sqlcmd",
   "nodejs_24",
 ]
+
+[[commands]]
+name = "tailwind"
+command = "npx @tailwindcss/cli -i ./wwwroot/input.css -o ./wwwroot/output.css --watch"

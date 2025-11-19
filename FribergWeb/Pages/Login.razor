@@ -4,28 +4,38 @@
 @inject AuthService authService
 @inject NavigationManager navManager
 
-<div class="grow flex justify-center items-center h-full w-full">
-    <div class="card">
-        <div class="card-body">
-            <h2 class="card-title">
-                Login
-            </h2>
-            <form @onsubmit="HandleLogin" @formname="login-form">
-                <fieldset class="fieldset">
-                    <legend class="fieldset-legend">UserName</legend>
-                    <input class="input w-full" @bind="Model.UserName"/>
+<div class="grow flex justify-center items-center h-full w-full p-4">
+    <div class="card bg-base-200 shadow-lg hover:shadow-xl transition-shadow w-full max-w-md">
+        <div class="card-body flex flex-col gap-4">
+            <h2 class="card-title text-center text-2xl font-bold">Login</h2>
+
+            <form @onsubmit="HandleLogin" @formname="login-form" class="flex flex-col gap-4">
+                <fieldset class="fieldset w-full">
+                    <legend class="fieldset-legend">Username</legend>
+                    <input class="input w-full" @bind="Model.UserName" placeholder="Enter your username" />
                 </fieldset>
-                <fieldset class="fieldset">
+
+                <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Password</legend>
-                    <input class="input w-full" type="password" @bind="Model.Password"/>
+                    <input class="input w-full" type="password" @bind="Model.Password"
+                        placeholder="Enter your password" />
                 </fieldset>
-                <p class="text-xl text-red-500">@Message</p>
-                <button type="submit" class="btn btn-primary mt-4 w-full">Login</button>
-                <NavLink href="/auth/register" class="btn btn-link mt-2">Dont have an account? Create one</NavLink>
+
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <p class="text-red-500 text-center font-medium">@Message</p>
+                }
+
+                <button type="submit" class="btn btn-primary w-full mt-2">Login</button>
+
+                <NavLink href="/auth/register" class="btn btn-link w-full mt-2 text-center">
+                    Don't have an account? Create one
+                </NavLink>
             </form>
         </div>
     </div>
 </div>
+
 
 @code {
     LoginDto Model = new LoginDto();
@@ -36,7 +46,7 @@
     {
         loading = true;
         Message = "";
-        var token = await authService.GetLoginTokenAsync(Model);
+        var token = await authService.LoginAsync(Model);
         if (string.IsNullOrEmpty(token))
         {
             Message = "Username or password is wrong!";

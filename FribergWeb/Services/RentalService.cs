@@ -18,6 +18,18 @@ public class RentalService(HttpClient client, ILocalStorageService localStorage)
         var token = await localStorage.GetItemAsync<string>("access_token");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var result = await client.SendAsync(request);
+        if(!result.IsSuccessStatusCode) {
+            return null;
+        }
         return await result.Content.ReadFromJsonAsync<FullRentalDto>();
+    }
+
+    public async Task<bool> DeleteAsync(string id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Delete, QueryHelpers.AddQueryString("/Rental", "id", id));
+        var token = await localStorage.GetItemAsync<string>("access_token");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var result = await client.SendAsync(request);
+        return result.IsSuccessStatusCode;
     }
 }

@@ -5,55 +5,60 @@
 @inject CarService carService
 @inject RentalService rentalService
 
-<div class="w-full h-full flex justify-center items-center overflow-x-hidden">
-    <div class="card">
-        <div class="card-body">
-            @if (Car == null)
+<div class="w-full h-full flex justify-center items-center p-4">
+    <div class="card bg-base-200 shadow-lg hover:shadow-xl transition-shadow flex flex-col w-full max-w-md h-full">
+        <div class="card-body flex flex-col flex-1">
+            @if (Car == null && loading)
             {
-                <h2 class="card-title">
-                    Not found
-                </h2>
+                <h2 class="card-title">Loading</h2>
+            }
+            else if (Car == null)
+            {
+                <h2 class="card-title">Not found</h2>
             }
             else if (Car.Deleted)
             {
-                <h2 class="card-title">
-                    Item is deleted :/
-                </h2>
-            } 
-            else if (Rental != null) {
-                 <h2 class="card-title">
+                <h2 class="card-title">Item is deleted :/</h2>
+            }
+            else if (Rental != null)
+            {
+                <h2 class="card-title text-center">
                     You have rented a @Car.Make @Car.Model @Car.Year
                 </h2>
-                <div class="flex flex-col items-center">
-                    <p>From: @Rental.Start.ToString()</p>
-                    <p>To: @Rental.End.ToString()</p>
+                <div class="flex flex-col items-center mt-4 gap-1">
+                    <p><span class="font-semibold">From:</span> @Rental.Start.ToString("g")</p>
+                    <p><span class="font-semibold">To:</span> @Rental.End.ToString("g")</p>
                 </div>
             }
             else
             {
-                <h2 class="card-title">
+                <h2 class="card-title text-center mb-4">
                     Rent @Car.Make @Car.Model @Car.Year
                 </h2>
-                <form @onsubmit="HandleRent" @formname="rent_car_form">
+                <form @onsubmit="HandleRent" @formname="rent_car_form" class="flex flex-col flex-1 gap-4">
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">Start</legend>
-                        <input class="input w-full" type="datetime-local" min="@DateTime.Now.ToString()" max="@Model.End.ToString()" @bind="Model.Start" disabled="@loading"/>
+                        <input class="input w-full" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                            max="@Model.End.ToString("yyyy-MM-ddTHH:mm")" @bind="Model.Start" disabled="@loading" />
                     </fieldset>
                     <fieldset class="fieldset w-full">
                         <legend class="fieldset-legend">End</legend>
-                        <input class="input w-full" type="datetime-local" min="@Model.Start.ToString()" @bind="Model.End" disabled="@loading"/>
+                        <input class="input w-full" type="datetime-local" min="@Model.Start.ToString("yyyy-MM-ddTHH:mm")"
+                            @bind="Model.End" disabled="@loading" />
                     </fieldset>
-                    <button type="submit" class="btn btn-primary w-full mt-4" disabled="@loading">Rent</button>
+                    <button type="submit" class="btn btn-primary w-full mt-auto" disabled="@loading">Rent</button>
                 </form>
             }
         </div>
     </div>
 </div>
 
+
 @code {
     [Parameter]
-    public string Id {get; set;} = string.Empty;
-    public RentCarDto Model = new RentCarDto() {
+    public string Id { get; set; } = string.Empty;
+    public RentCarDto Model = new RentCarDto()
+    {
         Start = DateTime.Now,
         End = DateTime.Now.AddDays(7),
     };
@@ -61,12 +66,12 @@
     public bool loading = false;
     public FullCarDto? Car = null;
 
-      protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         Car = await carService.GetCarAsync(Id);
     }
 
-     public async Task HandleRent()
+    public async Task HandleRent()
     {
         loading = true;
         Rental = await rentalService.RentCarAsync(Id, Model);

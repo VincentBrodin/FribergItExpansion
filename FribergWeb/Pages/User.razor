@@ -1,15 +1,67 @@
 @page "/user"
 @attribute [Authorize]
 @inject AuthService authService
+@inject RentalService rentalService
+<div class="w-full h-full flex justify-center items-start overflow-x-hidden p-4">
+    <div class="card bg-base-200 shadow-lg hover:shadow-xl transition-shadow w-full max-w-2xl">
+        <div class="card-body flex flex-col gap-4">
+            @if (user == null && loading)
+            {
+                <p class="text-center text-xl font-semibold">Loading</p>
+            }
+            else if (user == null)
+            {
+                <p class="text-center text-xl font-semibold text-red-500">User not found!</p>
+            }
+            else
+            {
+                <div class="flex flex-col gap-2">
+                    <h2 class="text-2xl font-bold text-center">Hello, @user.UserName!</h2>
+                    <h3 class="text-xl font-semibold mt-4">Your Rentals</h3>
 
-<div class="w-full h-full flex justify-center items-center overflow-x-hidden">
-    <div class="card">
-        <div class="card-body">
-
+                    @if (user.Rentals == null || !user.Rentals.Any())
+                    {
+                        <p class="text-center text-gray-500">You have no rentals yet.</p>
+                    }
+                    else
+                    {
+                        <div class="flex flex-col gap-3">
+                            @foreach (var rental in user.Rentals)
+                            {
+                                <div class="card bg-base-300 p-3 rounded-lg shadow-sm flex flex-col gap-2">
+                                    <p class="font-semibold">@rental.Car.Make @rental.Car.Model</p>
+                                    <p>From: @rental.Start.ToString("g")</p>
+                                    <p>To: @rental.End.ToString("g")</p>
+                                    <button @onclick="() => DeleteRental(rental.Id)" class="btn btn-error btn-sm mt-2 self-end"
+                                        disabled="@loading">
+                                        Delete
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>
 
-@code {
 
+@code {
+    public FullUserDto? user = null;
+    public bool loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        user = await authService.FetchAsync();
+        loading = false;
+    }
+
+    public async Task DeleteRental(string id)
+    {
+        loading = true;
+        await rentalService.DeleteAsync(id);
+        user = await authService.FetchAsync();
+        loading = false;
+    }
 }

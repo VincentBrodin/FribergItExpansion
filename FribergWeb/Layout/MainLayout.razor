@@ -1,9 +1,11 @@
 ﻿@inherits LayoutComponentBase
 
-<main class="w-screen h-screen flex flex-col overflow-x-hidden">
+<main class="w-screen h-screen flex flex-col overflow-hidden">
   <NavMenu />
 
-  <article class="grow">
-    @Body
+  <article class="flex-1 overflow-y-auto p-6">
+    <div class="max-w-5xl mx-auto">
+      @Body
+    </div>
   </article>
 </main>
