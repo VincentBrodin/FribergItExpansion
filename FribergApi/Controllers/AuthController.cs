@@ -15,7 +15,7 @@ namespace FribergApi.Controllers;
 
 [ApiController]
 [Route("[Controller]")]
-public class AuthController(UserManager<ApiUser> userManager, IConfiguration configuration, IRepository<Rental> rentalRepo, IRepository<Car> carRepo) : ControllerBase
+public class AuthController(UserManager<ApiUser> userManager, IConfiguration configuration, IRepository<Rental> rentalRepo, IRepository<Car> carRepo, IRepository<RefreshToken> refreshRepo) : ControllerBase
 {
     private static readonly List<string> KnownAdmins = new() {
        "vincent.brodin21@gmail.com",
@@ -72,7 +72,7 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
             await userManager.AddToRoleAsync(user, ApiRoles.User);
         }
 
-        string token = await GenerateToken(user);
+        var token = await GenerateToken(user);
         return Ok(token);
     }
 
@@ -92,7 +92,7 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
             return BadRequest("UserName or Password is wrong");
         }
 
-        string token = await GenerateToken(user);
+        var token = await GenerateToken(user);
         return Ok(token);
     }
 
@@ -119,7 +119,29 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
 
         return Ok("User deleted");
     }
-    private async Task<string> GenerateToken(ApiUser user)
+
+
+    [HttpPost("Refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
+    {
+        var storedToken = await refreshRepo.GetAsync(t => t.Token == request.RefreshToken);
+
+        if (storedToken == null || storedToken.IsRevoked || storedToken.IsUsed || storedToken.Expires < DateTime.UtcNow)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        var user = await userManager.FindByIdAsync(storedToken.UserId);
+        if (user == null) return Unauthorized();
+
+        storedToken.IsUsed = true;
+        await refreshRepo.SaveChangesAsync();
+
+        var newTokens = await GenerateToken(user);
+        return Ok(newTokens);
+    }
+
+    private async Task<AuthResponseDto> GenerateToken(ApiUser user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"] ?? throw new NullReferenceException("Missing jwt secret key")));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -135,18 +157,31 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
         }.Union([.. roles.Select(r => new Claim(ClaimTypes.Role, r))])
         .Union(userClaims);
 
-        var duration = Convert.ToInt32(configuration["JwtSettings:DurationInMinutes"]);
-        Console.WriteLine(duration);
-        Console.WriteLine(DateTime.UtcNow.AddMinutes(duration));
-        var token = new JwtSecurityToken(
+        var accessDuration = Convert.ToInt32(configuration["JwtSettings:AccessDurationInMinutes"]);
+        var accessToken = new JwtSecurityToken(
             issuer: configuration["JwtSettings:Issuer"],
             audience: configuration["JwtSettings:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(duration),
+            expires: DateTime.UtcNow.AddMinutes(accessDuration),
             signingCredentials: credentials
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var refreshDuration = Convert.ToInt32(configuration["JwtSettings:RefreshDurationInMinutes"]);
+        var refreshToken = new RefreshToken
+        {
+            Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+            UserId = user.Id,
+            Expires = DateTime.UtcNow.AddMinutes(refreshDuration)
+        };
+
+        await refreshRepo.AddAsync(refreshToken);
+        await refreshRepo.SaveChangesAsync();
+
+        return new AuthResponseDto
+        {
+            AccessToken = new JwtSecurityTokenHandler().WriteToken(accessToken),
+            RefreshToken = refreshToken.Token,
+        };
     }
 
 

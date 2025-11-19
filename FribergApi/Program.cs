@@ -30,6 +30,7 @@ builder.Services
 builder.Services.AddScoped<IRepository<Car>, CarRepository>();
 builder.Services.AddScoped<IRepository<Update>, GenericRepository<Update>>();
 builder.Services.AddScoped<IRepository<Rental>, GenericRepository<Rental>>();
+builder.Services.AddScoped<IRepository<RefreshToken>, GenericRepository<RefreshToken>>();
 
 
 builder.Services.AddAuthentication(options =>

@@ -1,13 +1,12 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using FribergShared.Dto;
-using System.Net;
 using System.Net.Http.Headers;
-using Blazored.LocalStorage;
+using FribergWeb.Providers;
 
 namespace FribergWeb.Services;
 
-public class RentalService(HttpClient client, ILocalStorageService localStorage)
+public class RentalService(HttpClient client, ApiAuthStateProvider authStateProvider)
 {
     public async Task<FullRentalDto?> RentCarAsync(string id, RentCarDto model)
     {
@@ -15,7 +14,7 @@ public class RentalService(HttpClient client, ILocalStorageService localStorage)
         {
             Content = JsonContent.Create(model)
         };
-        var token = await localStorage.GetItemAsync<string>("access_token");
+        var token = await authStateProvider.GetOrRefreshToken();
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var result = await client.SendAsync(request);
         if(!result.IsSuccessStatusCode) {
@@ -27,7 +26,7 @@ public class RentalService(HttpClient client, ILocalStorageService localStorage)
     public async Task<bool> DeleteAsync(string id)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, QueryHelpers.AddQueryString("/Rental", "id", id));
-        var token = await localStorage.GetItemAsync<string>("access_token");
+        var token = await authStateProvider.GetOrRefreshToken();
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var result = await client.SendAsync(request);
         return result.IsSuccessStatusCode;

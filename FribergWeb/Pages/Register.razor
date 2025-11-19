@@ -27,7 +27,8 @@
 
                 <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Password</legend>
-                    <input class="input w-full" type="password" @bind="Model.Password" placeholder="Enter your password" />
+                    <input class="input w-full" type="password" @bind="Model.Password"
+                        placeholder="Enter your password" />
                 </fieldset>
 
                 @if (!string.IsNullOrEmpty(Message))
@@ -55,14 +56,14 @@
     {
         loading = true;
         Message = "";
-        var token = await authService.RegisterAsync(Model);
-        if (string.IsNullOrEmpty(token))
+        var valid = await authService.RegisterAsync(Model);
+        if (valid)
         {
-            Message = "Could not create an account for you.";
+            navManager.NavigateTo("/");
         }
         else
         {
-            navManager.NavigateTo("/");
+            Message = "Could not create an account for you.";
         }
     }
 }

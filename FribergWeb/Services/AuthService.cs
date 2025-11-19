@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Blazored.LocalStorage;
@@ -13,7 +12,7 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
     public async Task<FullUserDto?> FetchAsync()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, "/Auth/Fetch");
-        var token = await localStorage.GetItemAsync<string>("access_token");
+        var token = await authStateProvider.GetOrRefreshToken();
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var result = await client.SendAsync(request);
         return await result.Content.ReadFromJsonAsync<FullUserDto>();
@@ -22,50 +21,50 @@ public class AuthService(HttpClient client, ILocalStorageService localStorage, A
     public async Task<bool> DeleteAsync()
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, "/Auth/Delete");
-        var token = await localStorage.GetItemAsync<string>("access_token");
+        var token = await authStateProvider.GetOrRefreshToken();
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var result = await client.SendAsync(request);
         return result.IsSuccessStatusCode;
     }
 
-    public async Task<string?> RegisterAsync(RegisterDto registerDto)
+    public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {
         Console.WriteLine("Trying to register");
         var res = await client.PostAsJsonAsync("/Auth/Register", registerDto);
         if (res == null || !res.IsSuccessStatusCode)
         {
-            return null;
+            return false;
         }
-        var token = await res.Content.ReadAsStringAsync();
-        if (string.IsNullOrEmpty(token))
+        var tokens = await res.Content.ReadFromJsonAsync<AuthResponseDto>();
+        if (tokens == null)
         {
-            return null;
+            return false;
         }
 
-        Console.WriteLine($"Regsiter token: {token}");
-        await localStorage.SetItemAsync("access_token", token);
+        await localStorage.SetItemAsync("access_token", tokens.AccessToken);
+        await localStorage.SetItemAsync("refresh_token", tokens.RefreshToken);
         await authStateProvider.LoggedIn();
-        return token;
+        return true;
     }
 
-    public async Task<string?> LoginAsync(LoginDto loginDto)
+    public async Task<bool> LoginAsync(LoginDto loginDto)
     {
         Console.WriteLine("Trying to login");
         var res = await client.PostAsJsonAsync("/Auth/Login", loginDto);
         if (res == null || !res.IsSuccessStatusCode)
         {
-            return null;
+            return false;
         }
-        var token = await res.Content.ReadAsStringAsync();
-        if (string.IsNullOrEmpty(token))
+        var tokens = await res.Content.ReadFromJsonAsync<AuthResponseDto>();
+        if (tokens == null)
         {
-            return null;
+            return false;
         }
 
-        Console.WriteLine($"Login token: {token}");
-        await localStorage.SetItemAsync("access_token", token);
+        await localStorage.SetItemAsync("access_token", tokens.AccessToken);
+        await localStorage.SetItemAsync("refresh_token", tokens.RefreshToken);
         await authStateProvider.LoggedIn();
-        return token;
+        return true;
     }
 
     public async Task Logout()

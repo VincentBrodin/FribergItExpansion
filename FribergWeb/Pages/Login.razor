@@ -46,14 +46,14 @@
     {
         loading = true;
         Message = "";
-        var token = await authService.LoginAsync(Model);
-        if (string.IsNullOrEmpty(token))
+        var valid = await authService.LoginAsync(Model);
+        if (valid)
         {
-            Message = "Username or password is wrong!";
+           navManager.NavigateTo("/");
         }
         else
         {
-            navManager.NavigateTo("/");
+             Message = "Username or password is wrong!";
         }
     }
 }
