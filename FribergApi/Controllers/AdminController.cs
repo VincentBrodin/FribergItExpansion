@@ -22,6 +22,7 @@ public class AdminController(UserManager<ApiUser> userManager, IRepository<Renta
         foreach (var user in users)
         {
             var fullUser = user.ToFullDto();
+            fullUser.IsAdmin = await userManager.IsInRoleAsync(user, ApiRoles.Admin);
             var rentals = await rentalRepo.FindAsync(r => r.UserId == user.Id);
             foreach (var rental in rentals)
             {
@@ -30,6 +31,37 @@ public class AdminController(UserManager<ApiUser> userManager, IRepository<Renta
             fullUsers.Add(fullUser);
         }
         return Ok(fullUsers);
+    }
+
+
+    [HttpGet("ToggleAdmin")]
+    [Authorize(Roles = ApiRoles.Admin)]
+    public async Task<IActionResult> ToggleAdmin([FromQuery] string id)
+    {
+        var user = await userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound($"No user with id {id}");
+
+        }
+
+        if (await userManager.IsInRoleAsync(user, ApiRoles.Admin))
+        {
+            var res = await userManager.RemoveFromRoleAsync(user, ApiRoles.Admin);
+            if (res == null || !res.Succeeded)
+            {
+                return BadRequest();
+            }
+        }
+        else
+        {
+            var res = await userManager.AddToRoleAsync(user, ApiRoles.Admin);
+            if (res == null || !res.Succeeded)
+            {
+                return BadRequest();
+            }
+        }
+        return Ok();
     }
 
     private async Task<FullRentalDto> GetFullRentalDto(Rental rental)
