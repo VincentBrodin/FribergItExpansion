@@ -19,6 +19,7 @@
     --container-md: 28rem;
     --container-2xl: 42rem;
     --container-3xl: 48rem;
+    --container-4xl: 56rem;
     --container-5xl: 64rem;
     --text-sm: 0.875rem;
     --text-sm--line-height: calc(1.25 / 0.875);
@@ -28,6 +29,8 @@
     --text-xl--line-height: calc(1.75 / 1.25);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: calc(2.25 / 1.875);
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
@@ -35,6 +38,7 @@
     --radius-xl: 0.75rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -236,55 +240,6 @@
       }
     }
   }
-  .drawer-side {
-    :where(&) {
-      @layer daisyui.component {
-        overflow-x: hidden;
-        overflow-y: hidden;
-      }
-    }
-    @layer daisyui.component {
-      pointer-events: none;
-      visibility: hidden;
-      position: fixed;
-      inset-inline-start: calc(0.25rem * 0);
-      top: calc(0.25rem * 0);
-      z-index: 10;
-      grid-column-start: 1;
-      grid-row-start: 1;
-      display: grid;
-      width: 100%;
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-      grid-template-rows: repeat(1, minmax(0, 1fr));
-      align-items: flex-start;
-      justify-items: start;
-      overscroll-behavior: contain;
-      background-color: transparent;
-      opacity: 0%;
-      transition: opacity 0.2s ease-out 0.1s allow-discrete, visibility 0.3s ease-out 0.1s allow-discrete;
-      height: 100vh;
-      height: 100dvh;
-      > .drawer-overlay {
-        position: sticky;
-        top: calc(0.25rem * 0);
-        cursor: pointer;
-        place-self: stretch;
-        background-color: oklch(0% 0 0 / 40%);
-      }
-      > * {
-        grid-column-start: 1;
-        grid-row-start: 1;
-      }
-      > *:not(.drawer-overlay) {
-        will-change: transform;
-        transition: translate 0.3s ease-out, width 0.2s ease-out;
-        translate: -100%;
-        [dir="rtl"] & {
-          translate: 100%;
-        }
-      }
-    }
-  }
   .drawer-open {
     @layer daisyui.modifier {
       :where(& > .drawer-side) {
@@ -315,34 +270,6 @@
           pointer-events: auto;
           visibility: visible;
         }
-      }
-    }
-  }
-  .drawer-toggle {
-    @layer daisyui.component {
-      position: fixed;
-      height: calc(0.25rem * 0);
-      width: calc(0.25rem * 0);
-      appearance: none;
-      opacity: 0%;
-      &:checked {
-        & ~ .drawer-side {
-          pointer-events: auto;
-          visibility: visible;
-          overflow-y: auto;
-          opacity: 100%;
-          scrollbar-color: currentColor oklch(0 0 0 / calc(var(--page-has-backdrop, 0) * 0.4));
-          @supports (color: color-mix(in lab, red, red)) {
-            scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) oklch(0 0 0 / calc(var(--page-has-backdrop, 0) * 0.4));
-          }
-          & > *:not(.drawer-overlay) {
-            translate: 0%;
-          }
-        }
-      }
-      &:focus-visible ~ .drawer-content label.drawer-button {
-        outline: 2px solid;
-        outline-offset: 2px;
       }
     }
   }
@@ -2522,13 +2449,6 @@
       overscroll-behavior: contain;
     }
   }
-  .drawer-content {
-    @layer daisyui.component {
-      grid-column-start: 2;
-      grid-row-start: 1;
-      min-width: calc(0.25rem * 0);
-    }
-  }
   .float-end {
     float: inline-end;
   }
@@ -2765,9 +2685,6 @@
   }
   .mt-6 {
     margin-top: calc(var(--spacing) * 6);
-  }
-  .mt-8 {
-    margin-top: calc(var(--spacing) * 8);
   }
   .mt-auto {
     margin-top: auto;
@@ -3194,9 +3111,6 @@
   .h-25 {
     height: calc(var(--spacing) * 25);
   }
-  .h-40 {
-    height: calc(var(--spacing) * 40);
-  }
   .h-50 {
     height: calc(var(--spacing) * 50);
   }
@@ -3244,6 +3158,9 @@
   }
   .max-w-3xl {
     max-width: var(--container-3xl);
+  }
+  .max-w-4xl {
+    max-width: var(--container-4xl);
   }
   .max-w-5xl {
     max-width: var(--container-5xl);
@@ -3309,6 +3226,9 @@
         animation: skeleton 1.8s ease-in-out infinite;
       }
     }
+  }
+  .animate-pulse {
+    animation: var(--animate-pulse);
   }
   .link {
     @layer daisyui.component {
@@ -3472,8 +3392,8 @@
     border-style: var(--tw-border-style);
     border-width: 5px;
   }
-  .border-base-100 {
-    border-color: var(--color-base-100);
+  .border-base-300 {
+    border-color: var(--color-base-300);
   }
   .border-black {
     border-color: var(--color-black);
@@ -3508,9 +3428,6 @@
   .bg-black {
     background-color: var(--color-black);
   }
-  .bg-gray-50 {
-    background-color: var(--color-gray-50);
-  }
   .bg-info {
     background-color: var(--color-info);
   }
@@ -3534,9 +3451,6 @@
   }
   .mask-repeat {
     mask-repeat: repeat;
-  }
-  .object-cover {
-    object-fit: cover;
   }
   .p-0 {
     padding: calc(var(--spacing) * 0);
@@ -3709,6 +3623,10 @@
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
   }
+  .text-3xl {
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
+  }
   .text-lg {
     font-size: var(--text-lg);
     line-height: var(--tw-leading, var(--text-lg--line-height));
@@ -3828,14 +3746,8 @@
   .text-black {
     color: var(--color-black);
   }
-  .text-error {
-    color: var(--color-error);
-  }
   .text-gray-500 {
     color: var(--color-gray-500);
-  }
-  .text-gray-600 {
-    color: var(--color-gray-600);
   }
   .text-green-500 {
     color: var(--color-green-500);
@@ -3909,6 +3821,12 @@
   .opacity-50 {
     opacity: 50%;
   }
+  .opacity-60 {
+    opacity: 60%;
+  }
+  .opacity-70 {
+    opacity: 70%;
+  }
   .opacity-75 {
     opacity: 75%;
   }
@@ -3921,10 +3839,6 @@
   }
   .shadow-lg {
     --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  }
-  .shadow-md {
-    --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-none {
@@ -4043,14 +3957,6 @@
       --btn-fg: var(--color-warning-content);
     }
   }
-  .hover\:shadow-md {
-    &:hover {
-      @media (hover: hover) {
-        --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-        box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-      }
-    }
-  }
   .hover\:shadow-xl {
     &:hover {
       @media (hover: hover) {
@@ -4059,24 +3965,9 @@
       }
     }
   }
-  .md\:mt-0 {
-    @media (width >= 48rem) {
-      margin-top: calc(var(--spacing) * 0);
-    }
-  }
-  .md\:ml-4 {
-    @media (width >= 48rem) {
-      margin-left: calc(var(--spacing) * 4);
-    }
-  }
   .md\:w-auto {
     @media (width >= 48rem) {
       width: auto;
-    }
-  }
-  .md\:grid-cols-2 {
-    @media (width >= 48rem) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   .md\:flex-row {
@@ -4094,34 +3985,14 @@
       justify-content: space-between;
     }
   }
-  .md\:gap-6 {
-    @media (width >= 48rem) {
-      gap: calc(var(--spacing) * 6);
-    }
-  }
   .lg\:grid-cols-2 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  .lg\:grid-cols-3 {
-    @media (width >= 64rem) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
   .xl\:grid-cols-3 {
     @media (width >= 80rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .xl\:grid-cols-4 {
-    @media (width >= 80rem) {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
-  .dark\:bg-gray-800 {
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--color-gray-800);
     }
   }
 }
@@ -4593,6 +4464,11 @@
 @property --tw-ease {
   syntax: "*";
   inherits: false;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
 }
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {

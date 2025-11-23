@@ -20,6 +20,7 @@ builder.Services.AddScoped<JwtSecurityTokenHandler>();
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<RentalService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AdminService>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

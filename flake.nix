@@ -1,32 +1,36 @@
 {
-  description = "virtual environments";
+  description = "Dotnet devshell";
 
-  inputs.devshell.url = "github:numtide/devshell";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-
-  inputs.flake-compat = {
-    url = "github:edolstra/flake-compat";
-    flake = false;
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   outputs =
+    { self, nixpkgs, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config = {
+          allowUnfree = true;
+        };
+      };
+    in
     {
-      self,
-      flake-utils,
-      devshell,
-      nixpkgs,
-      ...
-    }:
-    flake-utils.lib.eachDefaultSystem (system: {
-      devShells.default =
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-            overlays = [ devshell.overlays.default ];
-          };
-        in
-        pkgs.devshell.mkShell { imports = [ (pkgs.devshell.importTOML ./devshell.toml) ]; };
-    });
+      devShells.x86_64-linux.default = pkgs.mkShell {
+        buildInputs = [
+          pkgs.dotnet-sdk_9
+          pkgs.dotnet-ef
+          pkgs.csharp-ls
+          pkgs.vscode-fhs
+          pkgs.sqlcmd
+          pkgs.nodejs_24
+        ];
+
+        shellHook = ''
+          alias tw="npx tailwindcss -i ./wwwroot/input.css -o ./wwwroot/output.css --watch"
+        '';
+      };
+    };
 }
+

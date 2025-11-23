@@ -9,6 +9,13 @@
   </div>
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
+      <AuthorizeView Roles="@ApiRoles.Admin">
+        <Authorized>
+          <li>
+            <NavLink>Admin</NavLink>
+          </li>
+        </Authorized>
+      </AuthorizeView>
       <AuthorizeView>
         <Authorized>
           <li>

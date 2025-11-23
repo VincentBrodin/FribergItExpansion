@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text.Json;
 using FribergApi.Models;
+using FribergApi.Data;
 using FribergShared.Constants;
 using Microsoft.AspNetCore.Identity;
 
@@ -9,6 +10,13 @@ namespace FribergApi.Tools;
 
 public static class Auth
 {
+
+    public static List<ApiUser> GetUsers(HttpContext httpContext, UserManager<ApiUser> userManager)
+    {
+        var users = userManager.Users.Select(u => u).ToList() ?? [];
+        return users;
+    }
+
     public static async Task<ApiUser?> GetUser(HttpContext httpContext, UserManager<ApiUser> userManager)
     {
         var uid = httpContext.User.FindFirstValue("uid");

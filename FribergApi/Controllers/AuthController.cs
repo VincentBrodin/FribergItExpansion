@@ -184,7 +184,6 @@ public class AuthController(UserManager<ApiUser> userManager, IConfiguration con
         };
     }
 
-
     private async Task<FullRentalDto> GetFullRentalDto(Rental rental)
     {
         var dto = rental.ToFullDto();
