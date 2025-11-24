@@ -22,13 +22,14 @@
 
                 <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Email</legend>
-                    <input class="input w-full" type="email" @bind="Model.Email" placeholder="Enter your email" />
+                    <input class="input w-full" type="email" @bind="Model.Email" placeholder="Enter your email"
+                        disabled="@loading" />
                 </fieldset>
 
                 <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Password</legend>
-                    <input class="input w-full" type="password" @bind="Model.Password"
-                        placeholder="Enter your password" />
+                    <input class="input w-full" type="password" @bind="Model.Password" placeholder="Enter your password"
+                        disabled="@loading" />
                 </fieldset>
 
                 @if (!string.IsNullOrEmpty(Message))
@@ -36,7 +37,7 @@
                     <p class="text-red-500 text-center font-medium">@Message</p>
                 }
 
-                <button type="submit" class="btn btn-primary w-full mt-2">Register</button>
+                <button type="submit" class="btn btn-primary w-full mt-2" disabled="@loading">Register</button>
 
                 <NavLink href="/auth/login" class="btn btn-link w-full mt-2 text-center">
                     Already have an account? Login

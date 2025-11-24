@@ -12,13 +12,14 @@
             <form @onsubmit="HandleLogin" @formname="login-form" class="flex flex-col gap-4">
                 <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Username</legend>
-                    <input class="input w-full" @bind="Model.UserName" placeholder="Enter your username" />
+                    <input class="input w-full" @bind="Model.UserName" placeholder="Enter your username"
+                        disabled="@loading" />
                 </fieldset>
 
                 <fieldset class="fieldset w-full">
                     <legend class="fieldset-legend">Password</legend>
-                    <input class="input w-full" type="password" @bind="Model.Password"
-                        placeholder="Enter your password" />
+                    <input class="input w-full" type="password" @bind="Model.Password" placeholder="Enter your password"
+                        disabled="@loading" />
                 </fieldset>
 
                 @if (!string.IsNullOrEmpty(Message))
@@ -26,7 +27,7 @@
                     <p class="text-red-500 text-center font-medium">@Message</p>
                 }
 
-                <button type="submit" class="btn btn-primary w-full mt-2">Login</button>
+                <button type="submit" class="btn btn-primary w-full mt-2" disabled="@loading">Login</button>
 
                 <NavLink href="/auth/register" class="btn btn-link w-full mt-2 text-center">
                     Don't have an account? Create one
@@ -49,11 +50,11 @@
         var valid = await authService.LoginAsync(Model);
         if (valid)
         {
-           navManager.NavigateTo("/");
+            navManager.NavigateTo("/");
         }
         else
         {
-             Message = "Username or password is wrong!";
+            Message = "Username or password is wrong!";
         }
     }
 }
