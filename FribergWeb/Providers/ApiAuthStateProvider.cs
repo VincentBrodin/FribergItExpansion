@@ -53,7 +53,13 @@ public class ApiAuthStateProvider(HttpClient client, ILocalStorageService localS
     {
 
         var savedAccessToken = await localStorage.GetItemAsync<string>("access_token");
+        if(savedAccessToken == null) {
+            return null;
+        }
         var tokenContent = jwtSecurity.ReadJwtToken(savedAccessToken);
+        if(tokenContent == null) {
+            return null;
+        }
 
         if (tokenContent.ValidTo < DateTime.UtcNow.AddSeconds(30)) // If true then old
         {
